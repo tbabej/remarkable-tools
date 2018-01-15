@@ -1,0 +1,31 @@
+#!/bin/bash
+
+DEVICE_IP=10.11.99.1
+
+mkdir -p ~/.remarkable-tools/device
+pushd ~/.remarkable-tools/
+
+# Load the device filesystem
+sshfs root@10.11.99.1:/home/root/.local/share/remarkable/xochitl/ device
+
+# Find the latest modified file
+pushd device
+IDENTIFIER=`ls -t *.lines | head -n1 | cut -d. -f1`
+
+# Download the file via HTTP Rest API
+mkdir -p /tmp/remarkable
+wget http://10.11.99.1/download/$IDENTIFIER/placeholder -O /tmp/remarkable/remarkable_latest.pdf
+
+popd
+fusermount -u ~/.remarkable-tools/device
+popd
+
+pushd /tmp/remarkable
+PAGES_NUM=`pdfinfo remarkable_latest.pdf | grep Pages | sed 's/[^0-9]*//'`
+pdfseparate -f $PAGES_NUM -l $PAGES_NUM remarkable_latest.pdf 'lastpage%d.pdf'
+mv lastpage* lastpage.pdf
+
+okular --presentation lastpage.pdf &
+sleep 2
+
+gnome-screenshot -ac

@@ -1,0 +1,88 @@
+#!/bin/bash
+
+DEVICE_IP=10.11.99.1
+FILEPATH=`readlink -f "$1"`
+
+mkdir -p ~/.remarkable-tools/device
+pushd ~/.remarkable-tools/
+
+# Make sure the target is an existing pdf file
+if [[ ! `file "$FILEPATH" | grep "PDF document"` ]]
+then
+   echo "The file being moved to reMarkable has to be a PDF file"
+   file "$FILEPATH"
+   exit 1
+fi
+
+if [[ -z $2 ]]
+then
+    NAME=`echo $1 | cut -d. -f1 | rev | cut -d/ -f1 | rev`
+else
+    NAME=$2
+fi
+
+# Load the device filesystem
+sshfs root@10.11.99.1:/home/root/.local/share/remarkable/xochitl/ device
+
+# Generate a new unused identifier
+NEW_UUID=`python3 -c 'import uuid; print(uuid.uuid4(), end="")'`
+while [[ -d "device/$NEW_UUID" ]]
+do
+  NEW_UUID=`python3 -c 'import uuid; print(uuid.uuid4(), end="")'`
+done
+
+echo $FILEPATH
+cp $FILEPATH device/$NEW_UUID.pdf
+
+mkdir device/$NEW_UUID.cache
+mkdir device/$NEW_UUID.highlights
+mkdir device/$NEW_UUID.thumbnails
+
+echo "Blank" > device/${NEW_UUID}.pagedata
+
+TIMESTAMP=`date +%s`
+echo """{
+    \"deleted\": false,
+    \"lastModified\": \"$TIMESTAMP\",
+    \"metadatamodified\": false,
+    \"modified\": false,
+    \"parent\": \"\",
+    \"pinned\": false,
+    \"synced\": true,
+    \"type\": \"DocumentType\",
+    \"version\": 1,
+    \"visibleName\": \"$NAME\"
+}""" > device/${NEW_UUID}.metadata
+
+PAGES_NUM=`pdfinfo $FILEPATH | grep Pages | sed 's/[^0-9]*//'`
+echo """{
+    \"extraMetadata\": {
+        \"LastColor\": \"Black\",
+        \"LastTool\": \"SharpPencil\",
+        \"ThicknessScale\": \"2\"
+    },
+    \"fileType\": \"pdf\",
+    \"fontName\": \"\",
+    \"lastOpenedPage\": 0,
+    \"lineHeight\": -1,
+    \"margins\": 100,
+    \"pageCount\": $PAGES_NUM,
+    \"textScale\": 1,
+    \"transform\": {
+        \"m11\": 1,
+        \"m12\": 1,
+        \"m13\": 1,
+        \"m21\": 1,
+        \"m22\": 1,
+        \"m23\": 1,
+        \"m31\": 1,
+        \"m32\": 1,
+        \"m33\": 1
+    }
+}""" > device/${NEW_UUID}.content
+
+echo "$NAME" > device/${NEW_UUID}.name
+
+fusermount -u ~/.remarkable-tools/device
+
+popd
