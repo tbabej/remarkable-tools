@@ -21,6 +21,15 @@ else
     NAME=$2
 fi
 
+# check if filepath contains spaces
+if [[ "$(basename "${FILEPATH}")" =~ ( |\') ]]
+then
+	NEW_NAME="$(echo $1 | sed 's/ /_/g')"
+	TEMP_PATH=/tmp/$NEW_NAME
+	cp "$FILEPATH" $TEMP_PATH
+	FILEPATH=$TEMP_PATH
+fi
+
 # Load the device filesystem
 sshfs root@10.11.99.1:/home/root/.local/share/remarkable/xochitl/ device
 
@@ -86,3 +95,9 @@ echo "$NAME" > device/${NEW_UUID}.name
 fusermount -u ~/.remarkable-tools/device
 
 popd
+
+# tidy up the /tmp/ directory if needed
+if [[ -n $TEMP_PATH ]]; then
+	echo 'cleaning temp directory'
+	rm $TEMP_PATH
+fi
