@@ -24,7 +24,8 @@ fi
 # check if filepath contains spaces
 if [[ "$(basename "${FILEPATH}")" =~ ( |\') ]]
 then
-	NEW_NAME="$(echo $1 | sed 's/ /_/g')"
+	NEW_NAME="$(echo $(basename "$1") | sed 's/ /_/g')"
+	echo $NEW_NAME
 	TEMP_PATH=/tmp/$NEW_NAME
 	cp "$FILEPATH" $TEMP_PATH
 	FILEPATH=$TEMP_PATH
