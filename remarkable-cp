@@ -99,6 +99,8 @@ popd
 
 # tidy up the /tmp/ directory if needed
 if [[ -n $TEMP_PATH ]]; then
-	echo 'cleaning temp directory'
 	rm $TEMP_PATH
 fi
+
+# Print the UUID
+echo $NEW_UUID
