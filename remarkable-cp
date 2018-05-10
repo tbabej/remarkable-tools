@@ -41,7 +41,6 @@ do
   NEW_UUID=`python3 -c 'import uuid; print(uuid.uuid4(), end="")'`
 done
 
-echo $FILEPATH
 cp $FILEPATH device/$NEW_UUID.pdf
 
 mkdir device/$NEW_UUID.cache
