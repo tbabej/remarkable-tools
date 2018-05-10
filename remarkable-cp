@@ -49,7 +49,7 @@ mkdir device/$NEW_UUID.thumbnails
 
 echo "Blank" > device/${NEW_UUID}.pagedata
 
-TIMESTAMP=`date +%s`
+TIMESTAMP=`ssh root@10.11.99.1 "date +%s"`000
 echo """{
     \"deleted\": false,
     \"lastModified\": \"$TIMESTAMP\",
