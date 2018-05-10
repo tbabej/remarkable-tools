@@ -4,7 +4,7 @@ DEVICE_IP=10.11.99.1
 FILEPATH=`readlink -f "$1"`
 
 mkdir -p ~/.remarkable-tools/device
-pushd ~/.remarkable-tools/
+pushd ~/.remarkable-tools/ 2>&1 > /dev/null
 
 # Make sure the target is an existing pdf file
 if [[ ! `file "$FILEPATH" | grep "PDF document"` ]]
@@ -95,7 +95,7 @@ echo "$NAME" > device/${NEW_UUID}.name
 
 fusermount -u ~/.remarkable-tools/device
 
-popd
+popd 2>&1 > /dev/null
 
 # tidy up the /tmp/ directory if needed
 if [[ -n $TEMP_PATH ]]; then
